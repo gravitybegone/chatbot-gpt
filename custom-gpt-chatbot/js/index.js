@@ -178,7 +178,8 @@ class ChatbotMessageHandler {
         }
     }
 
-    addSuggestionButtons() {
+        addSuggestionButtons() {
+        console.log('🎯 Adding suggestion buttons...');
         const suggestionsHtml = `
             <div class="chatbot-suggestions">
                 <div class="suggestion-label">Quick Suggestions:</div>
@@ -191,18 +192,38 @@ class ChatbotMessageHandler {
             </div>
         `;
 
-        const suggestionsDiv = document.createElement('div');
-        suggestionsDiv.innerHTML = suggestionsHtml;
-        this.chatBody.appendChild(suggestionsDiv.firstElementChild);
+        try {
+            const suggestionsDiv = document.createElement('div');
+            suggestionsDiv.innerHTML = suggestionsHtml;
+            
+            // Remove any existing suggestions first
+            const existingSuggestions = this.chatBody.querySelectorAll('.chatbot-suggestions');
+            existingSuggestions.forEach(el => el.remove());
+            
+            // Add new suggestions
+            const suggestionElement = suggestionsDiv.firstElementChild;
+            if (!suggestionElement) {
+                console.error('❌ Failed to create suggestion element');
+                return;
+            }
+            
+            this.chatBody.appendChild(suggestionElement);
+            console.log('✅ Suggestion buttons added successfully');
 
-        // Add click handlers to suggestion buttons
-        const buttons = this.chatBody.querySelectorAll('.suggestion-btn');
-        buttons.forEach(button => {
-            button.addEventListener('click', () => {
-                const text = button.textContent;
-                this.handleSuggestionClick(text);
+            // Add click handlers to suggestion buttons
+            const buttons = this.chatBody.querySelectorAll('.suggestion-btn');
+            console.log(`📍 Found ${buttons.length} suggestion buttons`);
+            
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const text = button.textContent;
+                    console.log('🔘 Suggestion button clicked:', text);
+                    this.handleSuggestionClick(text);
+                });
             });
-        });
+        } catch (error) {
+            console.error('❌ Error adding suggestion buttons:', error);
+        }
     }
 
     handleSuggestionClick(text) {
