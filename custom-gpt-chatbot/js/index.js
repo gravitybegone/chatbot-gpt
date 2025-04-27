@@ -107,25 +107,34 @@ class ChatbotMessageHandler {
     processUserInput(text) {
         let response;
 
-        switch (this.session.state) {
-            case ChatbotState.INDUSTRY_SELECTION:
-                this.session.selectedIndustry = text;
-                this.session.state = ChatbotState.LOCATION_TYPE_SELECTION;
-                response = "Great! Now, would you like to search by city or county?";
-                break;
-            case ChatbotState.LOCATION_TYPE_SELECTION:
-                if (text.toLowerCase().includes('city')) {
-                    this.session.state = ChatbotState.CITY_SELECTION;
-                    response = "Which city are you interested in?";
-                } else if (text.toLowerCase().includes('county')) {
-                    this.session.state = ChatbotState.COUNTY_SELECTION;
-                    response = "Which county should I look in?";
-                } else {
-                    response = "Sorry, I didn't catch that. Please specify if you want to search by city or county.";
-                }
-                break;
-            default:
-                response = "I'll help you with your request about: " + text;
+        if (!this.session.selectedIndustry) {
+            this.session.selectedIndustry = text;
+            const countyOptions = ChatbotConfig.counties.map(county => county.name).join(', ');
+            response = `Great! You're looking for ${text}. Which county should I look in? (${countyOptions})`;
+        } 
+        else if (!this.session.selectedCounty) {
+            const selectedCounty = ChatbotConfig.counties.find(county => 
+                county.name.toLowerCase() === text.toLowerCase() ||
+                county.id.toLowerCase() === text.toLowerCase()
+            );
+
+            if (selectedCounty) {
+                this.session.selectedCounty = selectedCounty.id;
+                const cities = ChatbotConfig.cities[selectedCounty.id] || [];
+                response = `Which city in ${selectedCounty.name} are you interested in? (${cities.join(', ')})`;
+            } else {
+                response = `I couldn't find that county. Please choose from: ${ChatbotConfig.counties.map(c => c.name).join(', ')}`;
+            }
+        } 
+        else if (!this.session.selectedCity) {
+            const availableCities = ChatbotConfig.cities[this.session.selectedCounty] || [];
+            if (availableCities.map(city => city.toLowerCase()).includes(text.toLowerCase())) {
+                this.session.selectedCity = text;
+                response = `Great! I'll search for ${this.session.selectedIndustry} in ${text}.`;
+                // Here you would trigger the Pinecone search
+            } else {
+                response = `I couldn't find that city. Please choose from: ${availableCities.join(', ')}`;
+            }
         }
 
         setTimeout(() => {
@@ -173,10 +182,9 @@ class ChatbotMessageHandler {
             <div class="chatbot-suggestions">
                 <div class="suggestion-label">Quick Suggestions:</div>
                 <div class="chatbot-suggestion-buttons">
-                    <button class="suggestion-btn">Find a Restaurant</button>
-                    <button class="suggestion-btn">Local Services</button>
-                    <button class="suggestion-btn">Business Directory</button>
-                    <button class="suggestion-btn">Community Events</button>
+                    ${ChatbotConfig.industries.map(industry => 
+                        `<button class="suggestion-btn">${industry}</button>`
+                    ).join('')}
                 </div>
             </div>
         `;
@@ -214,28 +222,10 @@ class ChatbotMessageHandler {
 
     handleSuggestionClick(text) {
         this.displayUserMessage(text);
-
-        let response;
-        switch (text.toLowerCase()) {
-            case 'find a restaurant':
-                this.session.state = ChatbotState.INDUSTRY_SELECTION;
-                response = "I'd be happy to help you find a restaurant! What type of cuisine are you interested in?";
-                break;
-            case 'local services':
-                this.session.state = ChatbotState.INDUSTRY_SELECTION;
-                response = "What kind of local service are you looking for? (e.g., plumber, electrician, mechanic)";
-                break;
-            case 'business directory':
-                this.session.state = ChatbotState.INDUSTRY_SELECTION;
-                response = "I can help you browse our local business directory. What category interests you?";
-                break;
-            case 'community events':
-                this.session.state = ChatbotState.LOCATION_TYPE_SELECTION;
-                response = "Let me check what's happening in the community. Would you like to see events by city or county?";
-                break;
-            default:
-                response = "I'll help you find information about " + text + ". Could you provide more details?";
-        }
+        this.session.selectedIndustry = text;
+        
+        const countyOptions = ChatbotConfig.counties.map(county => county.name).join(', ');
+        const response = `Great! You're looking for ${text}. Which county should I look in? (${countyOptions})`;
 
         setTimeout(() => {
             this.displayBotMessage(response);
@@ -274,7 +264,7 @@ class ChatbotMessageHandler {
 // Make available globally
 window.ChatbotMessageHandler = ChatbotMessageHandler;
 
-// 🔥 Consolidated Initialization (formerly in chatbot-ui-init.js)
+// 🔥 Consolidated Initialization
 document.addEventListener('DOMContentLoaded', () => {
     console.group('🔄 Initializing chatbot UI');
     console.log('DOM loaded, starting initialization...');
