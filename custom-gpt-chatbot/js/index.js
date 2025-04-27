@@ -115,71 +115,98 @@ class ChatbotMessageHandler {
     }
 
     processUserInput(text) {
-        // Process user input and generate response
-        let response = "I'll help you with your request about: " + text;
+        // Process user input and generate response based on current state
+        let response;
+        
+        switch(this.session.state) {
+            case ChatbotState.INDUSTRY_SELECTION:
+                this.session.selectedIndustry = text;
+                this.session.state = ChatbotState.LOCATION_TYPE_SELECTION;
+                response = "Great! Now, would you like to search by city or county?";
+                break;
+            case ChatbotState.LOCATION_TYPE_SELECTION:
+                if (text.toLowerCase().includes('city')) {
+                    this.session.state = ChatbotState.CITY_SELECTION;
+                    response = "Which city are you interested in?";
+                } else if (text.toLowerCase().includes('county')) {
+                    this.session.state = ChatbotState.COUNTY_SELECTION;
+                    response = "Which county should I look in?";
+                } else {
+                    response = "Sorry, I didn't catch that. Please specify if you want to search by city or county.";
+                }
+                break;
+            default:
+                response = "I'll help you with your request about: " + text;
+        }
         
         setTimeout(() => {
             this.displayBotMessage(response);
         }, 500);
     }
 
-    addSuggestionButtons() {
-        const suggestionsHtml = `
-            <div class="chatbot-suggestions">
-                <div class="suggestion-label">Quick Suggestions:</div>
-                <div class="chatbot-suggestion-buttons">
-                    <button class="suggestion-btn">Find a Restaurant</button>
-                    <button class="suggestion-btn">Local Services</button>
-                    <button class="suggestion-btn">Business Directory</button>
-                    <button class="suggestion-btn">Community Events</button>
-                </div>
-            </div>
-        `;
-
-        const suggestionsDiv = document.createElement('div');
-        suggestionsDiv.innerHTML = suggestionsHtml;
-        this.chatBody.appendChild(suggestionsDiv.firstElementChild);
-
-        // Add click handlers to suggestion buttons
-        const buttons = this.chatBody.querySelectorAll('.suggestion-btn');
-        buttons.forEach(button => {
-            button.addEventListener('click', () => {
-                const text = button.textContent;
-                this.handleSuggestionClick(text);
-            });
-        });
-    }
-
-    handleSuggestionClick(text) {
-        // Display user's selection
-        this.displayUserMessage(text);
-
-        // Process different suggestions
-        let response;
-        switch(text.toLowerCase()) {
-            case 'find a restaurant':
-                response = "I'd be happy to help you find a restaurant! What type of cuisine are you interested in?";
-                break;
-            case 'local services':
-                response = "What kind of local service are you looking for? (e.g., plumber, electrician, mechanic)";
-                break;
-            case 'business directory':
-                response = "I can help you browse our local business directory. What category interests you?";
-                break;
-            case 'community events':
-                response = "Let me check what's happening in the community. Are you interested in this week's events?";
-                break;
-            default:
-                response = "I'll help you find information about " + text + ". Could you provide more details?";
+    displayUserMessage(message) {
+        console.log('👤 User message:', message);
+        try {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chatbot-msg user';
+            messageDiv.textContent = message;
+            this.chatBody.appendChild(messageDiv);
+            this.scrollToBottom();
+            if (this.session) {
+                this.session.addMessage(message, true);
+            }
+            this.updateDebugBanner();
+        } catch (error) {
+            console.error('❌ Error displaying user message:', error);
         }
-
-        // Add slight delay before bot response
-        setTimeout(() => {
-            this.displayBotMessage(response);
-        }, 500);
     }
 
-    // ... [rest of your existing methods remain the same] ...
+    displayBotMessage(message) {
+        console.log('🤖 Bot message:', message);
+        try {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chatbot-msg bot';
+            messageDiv.innerHTML = `<strong>Townie:</strong> ${message}`;
+            this.chatBody.appendChild(messageDiv);
+            this.scrollToBottom();
+            if (this.session) {
+                this.session.addMessage(message, false);
+            }
+            this.updateDebugBanner();
+        } catch (error) {
+            console.error('❌ Error displaying bot message:', error);
+        }
+    }
+
+    // ... [existing addSuggestionButtons and handleSuggestionClick methods] ...
+
+    endSession() {
+        if (this.session) {
+            this.session.endSession();
+            this.chatBody.innerHTML = ''; // Clear chat
+            this.displayBotMessage("Session ended. How can I help you today?");
+            this.addSuggestionButtons();
+        }
+        this.updateDebugBanner();
+    }
+
+    scrollToBottom() {
+        try {
+            if (this.chatBody) {
+                this.chatBody.scrollTop = this.chatBody.scrollHeight;
+                console.log('✅ Scrolled to bottom');
+            }
+        } catch (error) {
+            console.error('❌ Error scrolling to bottom:', error);
+        }
+    }
+
+    updateDebugBanner() {
+        if (this.isDebugMode && this.debugBanner && this.session) {
+            this.debugBanner.textContent = `Current State: ${this.session.state} | Messages: ${this.session.messages.length}`;
+            this.debugBanner.style.display = 'block';
+        }
+    }
 }
 
 // Make available globally
