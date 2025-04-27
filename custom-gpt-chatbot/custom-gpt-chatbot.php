@@ -23,6 +23,13 @@ class CustomGPTChatbot {
     public function enqueue_assets() {
         // Enqueue your scripts and styles here
 
+        wp_enqueue_style(
+        'chatbot-styles',
+        $this->plugin_url . 'css/chatbot-styles.css',
+        array(),
+        '2.0.0'
+        );
+
         // Config script
         wp_enqueue_script(
             'chatbot-config',
