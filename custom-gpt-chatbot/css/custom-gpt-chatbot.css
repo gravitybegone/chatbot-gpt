@@ -1,0 +1,626 @@
+/* Debug Banner */
+#chatbot-debug-banner {
+    background: #ffeeba;
+    color: #212529;
+    padding: 8px 12px;
+    font-size: 13px;
+    display: none;
+}
+
+#chatbot-debug-banner code {
+    background: rgba(0,0,0,.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Toggle Button */
+#chatbot-toggle {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background-color: #0073aa;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 30px;
+    font-size: 18px;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 10000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    transition: background-color 0.3s ease;
+    border: none;
+}
+
+#chatbot-toggle:hover {
+    background-color: #005b8f;
+}
+
+/* Chat Container */
+#custom-gpt-chatbot-container {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+    z-index: 9999;
+    width: 350px;
+}
+
+#custom-gpt-chatbot-container.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Chat Window Wrapper */
+#gpt-chatbot-wrapper {
+    width: 100%;
+    height: 440px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    border: 1px solid #ddd;
+    position: relative;
+    resize: none;
+    min-width: 280px;
+    min-height: 300px;
+    max-width: 455px;
+    max-height: 572px;
+    overflow: hidden;
+}
+
+/* Header */
+#gpt-chatbot-header {
+    background-color: #0073aa;
+    color: white;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Body */
+#gpt-chatbot-body {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+}
+
+/* Input Section */
+#gpt-chatbot-input-wrapper {
+    display: flex;
+    padding: 10px;
+    background-color: #fff;
+    border-top: 1px solid #ccc;
+    gap: 10px;
+}
+
+#gpt-chatbot-input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Buttons Container */
+#gpt-chatbot-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Message Styling */
+.chatbot-msg {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.4;
+    max-width: 85%;
+}
+
+.chatbot-msg.user {
+    background: #e3f2fd;
+    margin-left: auto;
+    color: #333;
+}
+
+.chatbot-msg.bot {
+    background: #f5f5f5;
+    margin-right: auto;
+    color: #333;
+}
+
+/* Rest of your existing CSS... */
+
+#chatbot-debug-banner {
+    background: #ffeeba;
+    color: #212529;
+    padding: 8px 12px;
+    font-size: 13px;
+    display: none;
+}
+
+#chatbot-debug-banner code {
+    background: rgba(0,0,0,.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Toggle Button */
+#chatbot-toggle {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: #0073aa;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 30px;
+  font-size: 18px;
+  cursor: pointer;
+  font-weight: bold;
+  z-index: 10000;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: background-color 0.3s ease;
+}
+
+#chatbot-toggle:hover {
+  background-color: #005b8f;
+}
+
+/* Chat Container */
+/* Update your existing chat container styles */
+#custom-gpt-chatbot-container {
+    position: fixed;
+    bottom: 90px; /* Adjust based on your toggle button position */
+    right: 24px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+    z-index: 9999;
+}
+
+#custom-gpt-chatbot-container.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    display: block;
+}
+
+/* Chat Window Wrapper */
+#gpt-chatbot-wrapper {
+  width: 350px;
+  height: 440px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  border: 1px solid #ddd;
+  position: relative;
+  resize: none;
+  min-width: 280px;
+  min-height: 300px;
+  max-width: 455px;
+  max-height: 572px;
+  overflow: hidden;
+}
+
+/* Custom Resizer */
+#gpt-chatbot-resizer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  background: repeating-linear-gradient(
+    135deg,
+    #ccc,
+    #ccc 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  z-index: 10;
+}
+
+/* Header */
+#gpt-chatbot-header {
+  background-color: #0073aa;
+  color: white;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Body */
+#gpt-chatbot-body {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  background-color: #f9f9f9;
+}
+
+/* Input Section */
+#gpt-chatbot-input-wrapper {
+  display: flex;
+  padding: 10px;
+  background-color: #fff;
+  border-top: 1px solid #ccc;
+}
+
+#gpt-chatbot-input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+/* Buttons Container */
+#gpt-chatbot-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Common Button Styles */
+#gpt-chatbot-send,
+#gpt-chatbot-end-session {
+
+  font-size: 13px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+}
+
+/* Send Button */
+#gpt-chatbot-send {
+  padding: 6px 10px;
+  background-color: #0073aa;
+  color: white;
+}
+
+#gpt-chatbot-send:hover {
+  background-color: #005b8f;
+}
+
+/* End Session Button */
+#gpt-chatbot-end-session {
+  padding: 2px 10px;
+  background-color: #dc3545;
+  color: white;
+}
+
+#gpt-chatbot-end-session:hover {
+  background-color: #c82333;
+}
+
+/* Footer (if needed) */
+#gpt-chatbot-footer {
+  text-align: right;
+  background: #fff;
+  border-top: 1px solid #eee;
+  padding: 8px;
+}
+
+/* Message Styling */
+.chatbot-msg {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.chatbot-msg strong {
+  margin-right: 6px;
+}
+
+.chatbot-msg.user::before {
+  content: '🧑';
+  margin-right: 6px;
+}
+
+.chatbot-msg.bot {
+  display: block !important;
+  line-height: 1.6;
+  margin-bottom: 10px;
+  padding-left: 24px;
+  position: relative;
+}
+
+.chatbot-msg.bot::before {
+  content: '🤖';
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.chatbot-msg.bot > div {
+  display: block;
+}
+
+/* Business Card */
+.chatbot-card {
+  margin-top: 12px;
+  padding: 10px;
+  background: #f3f3f3;
+  border-radius: 6px;
+  word-wrap: break-word;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+.chatbot-card a {
+  color: #0073aa;
+  text-decoration: none;
+}
+
+.chatbot-card a:hover {
+  text-decoration: underline;
+}
+
+.chatbot-card p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #333;
+}
+
+/* Confirm end sessions pop-up */
+
+#chatbot-confirm-popup-wrapper {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 10001; /* Ensure it's above other elements */
+}
+
+#chatbot-confirm-popup {
+  background: #fff;
+  padding: 16px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  max-width: 280px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+#chatbot-confirm-popup button {
+  margin-top: 12px;
+  padding: 6px 12px;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#confirm-end {
+  background: #dc3545;
+  color: white;
+  margin-right: 8px;
+}
+
+#cancel-end {
+  background: #ccc;
+  color: #333;
+}
+
+/* Show More button */
+
+.chatbot-card-hidden {
+  display: none;
+}
+.chatbot-show-more {
+  background: #0073aa;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.chatbot-show-more:hover {
+  background-color: #005b8f;
+}
+
+/* Suggestion button */
+
+
+
+.chatbot-suggestions {
+  margin-top: 10px;
+  padding: 10px;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.suggestion-label {
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #555;
+}
+
+.suggestion-btn {
+  margin: 4px 6px 0 0;
+  padding: 6px 12px;
+  font-size: 13px;
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.suggestion-btn:hover {
+  background-color: #e2e2e2;
+}
+
+.chatbot-suggestion-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 20px;
+}
+
+.chatbot-suggestion-buttons.hidden {
+  display: none !important;
+}
+
+.popup-visible {
+  display: flex !important;
+}
+
+
+/* location */
+
+.chatbot-location-msg {
+  background: #f0f4ff;
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-style: italic;
+  color: #333;
+}
+
+/* County Filter Buttons */
+.county-filters {
+  display: flex;
+  flex-wrap: wrap !important;
+  justify-content: center;
+  gap: 4px !important;
+  margin: 10px 0;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.county-filters .suggestion-btn {
+    padding: 4px 10px;
+    margin: 4px 0px;
+    font-size: 12px;
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.county-filters .suggestion-btn:hover {
+  background-color: #e2e2e2;
+}
+
+/* Subtle "Search Another Company" Button */
+.chatbot-restart-btn {
+  background: transparent;
+  color: #0073aa;
+  border: 1px dashed #0073aa;
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chatbot-restart-btn:hover {
+  background-color: #f0f8ff;
+}
+
+@keyframes bounceSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-5px) scale(1.02);
+  }
+  80% {
+    transform: translateY(2px) scale(0.99);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.chatbot-options {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.chatbot-options button {
+  background-color: #f4f4f4;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+/* Add to your existing CSS */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Update suggestion buttons styling */
+.chatbot-suggestions {
+    margin-top: 20px; /* Increased margin to separate from greeting */
+    opacity: 0; /* Start hidden */
+    transition: opacity 0.3s ease;
+}
+
+.chatbot-suggestions.fade-in {
+    opacity: 1;
+}
+
+/* Make suggestion buttons more prominent */
+.suggestion-btn {
+    margin: 4px 6px 0 0;
+    padding: 8px 16px;
+    font-size: 13px;
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.suggestion-btn:hover {
+    background-color: #e2e2e2;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.suggestion-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}

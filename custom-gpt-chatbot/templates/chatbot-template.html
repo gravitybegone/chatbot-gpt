@@ -1,0 +1,53 @@
+<div id="custom-gpt-chatbot-container" class="custom-gpt-chatbot-container">
+    <div id="chatbot-debug-banner" class="chatbot-debug-banner"></div>
+    
+    <div id="gpt-chatbot-wrapper" class="gpt-chatbot-wrapper">
+        <div id="gpt-chatbot-resizer" class="gpt-chatbot-resizer"></div>
+        
+        <div id="gpt-chatbot-header" class="gpt-chatbot-header">
+            Townie Chat
+        </div>
+
+        <div id="gpt-chatbot-body" class="gpt-chatbot-body">
+            <!-- Messages will be inserted here -->
+            
+            <!-- Suggestion Buttons Section -->
+            <div class="chatbot-suggestions">
+                <div class="suggestion-label">Quick Suggestions:</div>
+                <div class="chatbot-suggestion-buttons">
+                    <button class="suggestion-btn">Find a Restaurant</button>
+                    <button class="suggestion-btn">Local Services</button>
+                    <button class="suggestion-btn">Business Directory</button>
+                    <button class="suggestion-btn">Community Events</button>
+                </div>
+            </div>
+
+            <!-- County Filters Section -->
+            <div class="county-filters">
+                <!-- County buttons will be dynamically inserted here -->
+            </div>
+        </div>
+        
+        <div id="gpt-chatbot-input-wrapper" class="gpt-chatbot-input-wrapper">
+            <input type="text" id="gpt-chatbot-input" placeholder="Type your message...">
+            <div id="gpt-chatbot-buttons" class="gpt-chatbot-buttons">
+                <button id="gpt-chatbot-send">Send</button>
+                <button id="gpt-chatbot-end-session">End Session</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="chatbot-confirm-popup-wrapper" class="chatbot-confirm-popup-wrapper">
+        <div id="chatbot-confirm-popup" class="chatbot-confirm-popup">
+            <p>Are you sure you want to end this session?</p>
+            <div class="confirm-buttons">
+                <button id="confirm-end">Yes, End Session</button>
+                <button id="cancel-end">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button id="chatbot-toggle" class="chatbot-toggle">
+    <span class="toggle-icon">💬</span>
+</button>
