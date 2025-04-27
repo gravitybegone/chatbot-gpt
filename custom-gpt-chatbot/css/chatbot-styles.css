@@ -106,9 +106,10 @@
 /* Body */
 #gpt-chatbot-body {
     flex: 1;
-    padding: 12px;
     overflow-y: auto;
-    background-color: #f9f9f9;
+    padding: 15px;
+    position: relative;
+    background-color: #ffffff;
 }
 
 /* Input Section */
@@ -248,7 +249,7 @@
     color: #333;
 }
 
-/* Confirm end sessions pop-up */
+/* Confirm end session popup */
 #chatbot-confirm-popup-wrapper {
     display: none;
     justify-content: center;
@@ -293,7 +294,7 @@
     color: #333;
 }
 
-/* Show More button */
+/* Show More Button */
 .chatbot-card-hidden {
     display: none;
 }
@@ -314,127 +315,58 @@
 
 /* Suggestions Container */
 .chatbot-suggestions {
-    margin: 10px 0;
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.chatbot-suggestions.fade-in {
-    opacity: 1;
+    margin: 15px 0;
+    display: block;
+    width: 100%;
+    position: relative;
+    z-index: 10;
 }
 
 .suggestion-label {
-    font-size: 0.9em;
-    color: #6c757d;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     font-weight: bold;
+    color: #333;
+    display: block;
 }
 
 .chatbot-suggestion-buttons {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin: 10px 20px;
+    margin-top: 8px;
+    position: relative;
+    z-index: 12;
+    width: 100%;
+    justify-content: flex-start;
 }
 
+/* Update the suggestion button styles */
 .suggestion-btn {
-    background-color: #e9ecef;
-    border: 1px solid #dee2e6;
+    margin: 5px;
+    padding: 8px 12px;
+    border: 2px solid #007bff;
     border-radius: 20px;
-    padding: 6px 12px;
-    font-size: 0.9em;
-    color: #495057;
+    background-color: #ffffff;
+    color: #007bff;
     cursor: pointer;
-    transition: all 0.2s ease;
-    max-width: calc(50% - 4px);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 14px;
+    display: inline-block;
+    opacity: 1;
+    position: relative;
+    z-index: 11;
+    transition: all 0.3s ease;
 }
 
 .suggestion-btn:hover {
     background-color: #007bff;
-    border-color: #007bff;
-    color: white;
+    color: #ffffff;
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.suggestion-btn:active {
-    transform: translateY(0);
-    box-shadow: none;
-}
-
-.chatbot-suggestion-buttons.hidden {
-    display: none !important;
-}
-
-.popup-visible {
-    display: flex !important;
-}
-
-/* Location */
-.chatbot-location-msg {
-    background: #f0f4ff;
-    padding: 8px 10px;
-    border-radius: 6px;
-    margin-bottom: 10px;
-    font-style: italic;
-    color: #333;
-}
-
-/* County Filter Buttons */
-.county-filters {
-    display: flex;
-    flex-wrap: wrap !important;
-    justify-content: center;
-    gap: 4px !important;
-    margin: 10px 0;
-    animation: fadeInUp 0.4s ease-out;
-}
-
-.county-filters .suggestion-btn {
-    padding: 4px 10px;
-    margin: 4px 0px;
-    font-size: 12px;
-}
-
-/* Subtle "Search Another Company" Button */
-.chatbot-restart-btn {
-    background: transparent;
-    color: #0073aa;
-    border: 1px dashed #0073aa;
-    padding: 5px 10px;
-    font-size: 12px;
-    border-radius: 6px;
-    margin-top: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.chatbot-restart-btn:hover {
-    background-color: #f0f8ff;
-}
-
-/* Animations */
-@keyframes bounceSlideIn {
-    0% {
-        opacity: 0;
-        transform: translateY(20px) scale(0.98);
-    }
-    60% {
-        opacity: 1;
-        transform: translateY(-5px) scale(1.02);
-    }
-    80% {
-        transform: translateY(2px) scale(0.99);
-    }
-    100% {
-        transform: translateY(0) scale(1);
-    }
+/* Other supporting styles */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
 }
 
 @keyframes fadeIn {
@@ -446,24 +378,4 @@
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-.fade-in {
-    animation: fadeIn 0.5s ease-in;
-}
-
-/* Options */
-.chatbot-options {
-    margin-top: 10px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.chatbot-options button {
-    background-color: #f4f4f4;
-    border: 1px solid #ccc;
-    padding: 6px 10px;
-    cursor: pointer;
-    border-radius: 6px;
 }
