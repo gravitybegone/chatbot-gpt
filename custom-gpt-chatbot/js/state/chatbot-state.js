@@ -1,4 +1,4 @@
-// Remove any export statements
+// No export statements, everything global
 window.ChatbotState = {
     GREETING: 'greeting',
     INDUSTRY_SELECTION: 'industry_selection',
@@ -13,7 +13,8 @@ class ChatSession {
     constructor() {
         this.state = 'initial';
         this.selectedIndustry = null;
-        this.selectedLocation = null;
+        this.selectedCounty = null;   // ✅ Replaced selectedLocation with selectedCounty
+        this.selectedCity = null;     // ✅ Added selectedCity
         this.messages = [];
     }
 
@@ -29,8 +30,10 @@ class ChatSession {
         this.state = 'ended';
         this.messages = [];
         this.selectedIndustry = null;
-        this.selectedLocation = null;
+        this.selectedCounty = null;   // ✅ Reset selectedCounty on endSession
+        this.selectedCity = null;     // ✅ Reset selectedCity on endSession
     }
 }
 
+// Make globally available
 window.ChatSession = ChatSession;
