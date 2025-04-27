@@ -2,11 +2,9 @@ class ChatbotMessageHandler {
     constructor() {
         console.group('🤖 Initializing ChatbotMessageHandler');
         
-        // Get debug mode from localized data
         this.isDebugMode = window.customGptChatbotAjax?.debug || false;
         console.log('Debug mode:', this.isDebugMode);
-        
-        // Debug check for required elements
+
         const requiredElements = {
             'chatbot-toggle': document.getElementById('chatbot-toggle'),
             'custom-gpt-chatbot-container': document.getElementById('custom-gpt-chatbot-container'),
@@ -16,7 +14,6 @@ class ChatbotMessageHandler {
             'chatbot-debug-banner': document.getElementById('chatbot-debug-banner')
         };
 
-        // Check if all elements exist
         const missingElements = Object.entries(requiredElements)
             .filter(([name, element]) => !element)
             .map(([name]) => name);
@@ -34,10 +31,9 @@ class ChatbotMessageHandler {
             this.sendButton = requiredElements['gpt-chatbot-send'];
             this.debugBanner = requiredElements['chatbot-debug-banner'];
             this.container = requiredElements['custom-gpt-chatbot-container'];
-            
-            // Add chatbox toggle functionality
+
             const chatbotToggle = requiredElements['chatbot-toggle'];
-            
+
             if (chatbotToggle && this.container) {
                 chatbotToggle.addEventListener('click', () => {
                     this.container.classList.toggle('visible');
@@ -45,16 +41,13 @@ class ChatbotMessageHandler {
                 });
             }
 
-            // Setup input handlers
             this.setupInputHandlers();
 
-            // Remove existing suggestions if any
             const existingSuggestions = this.chatBody.querySelector('.chatbot-suggestions');
             if (existingSuggestions) {
                 existingSuggestions.remove();
             }
 
-            // Start conversation with greeting
             const greetings = [
                 "🌟 Hey there! I'm Townie, your local legend finder...",
                 "👋 Yo! I'm Townie — your small-town sidekick...",
@@ -63,23 +56,22 @@ class ChatbotMessageHandler {
                 "🎯 Hi hi! I'm Townie...",
                 "🤖 Hey hey! I'm Townie 👋..."
             ];
-            
+
             const lastIndex = parseInt(localStorage.getItem('last_greeting_index')) || -1;
             let newIndex;
             do {
                 newIndex = Math.floor(Math.random() * greetings.length);
             } while (newIndex === lastIndex && greetings.length > 1);
             localStorage.setItem('last_greeting_index', newIndex);
-            
+
             this.displayBotMessage(greetings[newIndex]);
 
-            // Add suggestions after greeting with delay
             setTimeout(() => {
                 this.addSuggestionButtons();
             }, 500);
 
             this.updateDebugBanner();
-            
+
             console.log('✅ ChatbotMessageHandler initialized successfully');
         } catch (error) {
             console.error('❌ Error in initialization:', error);
@@ -88,14 +80,12 @@ class ChatbotMessageHandler {
     }
 
     setupInputHandlers() {
-        // Handle send button clicks
         if (this.sendButton) {
             this.sendButton.addEventListener('click', () => {
                 this.handleUserInput();
             });
         }
 
-        // Handle enter key in input
         if (this.input) {
             this.input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -109,16 +99,15 @@ class ChatbotMessageHandler {
         const text = this.input.value.trim();
         if (text) {
             this.displayUserMessage(text);
-            this.input.value = ''; // Clear input
+            this.input.value = '';
             this.processUserInput(text);
         }
     }
 
     processUserInput(text) {
-        // Process user input and generate response based on current state
         let response;
-        
-        switch(this.session.state) {
+
+        switch (this.session.state) {
             case ChatbotState.INDUSTRY_SELECTION:
                 this.session.selectedIndustry = text;
                 this.session.state = ChatbotState.LOCATION_TYPE_SELECTION;
@@ -138,7 +127,7 @@ class ChatbotMessageHandler {
             default:
                 response = "I'll help you with your request about: " + text;
         }
-        
+
         setTimeout(() => {
             this.displayBotMessage(response);
         }, 500);
@@ -178,7 +167,7 @@ class ChatbotMessageHandler {
         }
     }
 
-        addSuggestionButtons() {
+    addSuggestionButtons() {
         console.log('🎯 Adding suggestion buttons...');
         const suggestionsHtml = `
             <div class="chatbot-suggestions">
@@ -195,25 +184,22 @@ class ChatbotMessageHandler {
         try {
             const suggestionsDiv = document.createElement('div');
             suggestionsDiv.innerHTML = suggestionsHtml;
-            
-            // Remove any existing suggestions first
+
             const existingSuggestions = this.chatBody.querySelectorAll('.chatbot-suggestions');
             existingSuggestions.forEach(el => el.remove());
-            
-            // Add new suggestions
+
             const suggestionElement = suggestionsDiv.firstElementChild;
             if (!suggestionElement) {
                 console.error('❌ Failed to create suggestion element');
                 return;
             }
-            
+
             this.chatBody.appendChild(suggestionElement);
             console.log('✅ Suggestion buttons added successfully');
 
-            // Add click handlers to suggestion buttons
             const buttons = this.chatBody.querySelectorAll('.suggestion-btn');
             console.log(`📍 Found ${buttons.length} suggestion buttons`);
-            
+
             buttons.forEach(button => {
                 button.addEventListener('click', () => {
                     const text = button.textContent;
@@ -227,12 +213,10 @@ class ChatbotMessageHandler {
     }
 
     handleSuggestionClick(text) {
-        // Display user's selection
         this.displayUserMessage(text);
 
-        // Process different suggestions
         let response;
-        switch(text.toLowerCase()) {
+        switch (text.toLowerCase()) {
             case 'find a restaurant':
                 this.session.state = ChatbotState.INDUSTRY_SELECTION;
                 response = "I'd be happy to help you find a restaurant! What type of cuisine are you interested in?";
@@ -253,7 +237,6 @@ class ChatbotMessageHandler {
                 response = "I'll help you find information about " + text + ". Could you provide more details?";
         }
 
-        // Add slight delay before bot response
         setTimeout(() => {
             this.displayBotMessage(response);
         }, 500);
@@ -262,7 +245,7 @@ class ChatbotMessageHandler {
     endSession() {
         if (this.session) {
             this.session.endSession();
-            this.chatBody.innerHTML = ''; // Clear chat
+            this.chatBody.innerHTML = '';
             this.displayBotMessage("Session ended. How can I help you today?");
             this.addSuggestionButtons();
         }
@@ -290,3 +273,18 @@ class ChatbotMessageHandler {
 
 // Make available globally
 window.ChatbotMessageHandler = ChatbotMessageHandler;
+
+// 🔥 Consolidated Initialization (formerly in chatbot-ui-init.js)
+document.addEventListener('DOMContentLoaded', () => {
+    console.group('🔄 Initializing chatbot UI');
+    console.log('DOM loaded, starting initialization...');
+
+    try {
+        window.activeChatbot = new ChatbotMessageHandler();
+        console.log('✅ Chatbot UI initialized successfully');
+    } catch (error) {
+        console.error('❌ Error initializing chatbot UI:', error);
+    }
+
+    console.groupEnd();
+});
