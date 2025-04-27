@@ -1,91 +1,213 @@
 <?php
 // chatbot-pinecone.php
 
+class PineconeSearchException extends Exception {}
+
 function query_pinecone_by_metadata($keyword, $county = null, $city = null, $top_k = 10) {
-  // Add to beginning of query_pinecone_by_metadata function
-error_log('🔍 Starting Pinecone query at ' . date('Y-m-d H:i:s'));
-error_log('📊 Query parameters: ' . json_encode([
-    'keyword' => $keyword,
-    'county' => $county,
-    'city' => $city,
-    'top_k' => $top_k
-]));
-    $keyword = strtolower(trim($keyword));
-    
-    // Generate embedding for semantic search
-    $embedding = generate_embedding($keyword);
-    if (!$embedding) {
-        error_log('⚠️ Failed to generate embedding, falling back to metadata-only search');
-        $vector = array_fill(0, 1536, 0.0); // Fallback to zero vector
-    } else {
-        $vector = $embedding;
-    }
-    
-    // Industry array search
-    $industry_filter = [
-        '$or' => [
-            ['industry' => ['$in' => [$keyword]]],
-            ['industry_synonyms' => ['$in' => [$keyword]]]
-        ]
-    ];
+    try {
+        // Validate required configuration
+        if (!defined('PINECONE_API_KEY')) {
+            throw new PineconeSearchException('Pinecone API key is not configured');
+        }
 
-    // Location logic - Updated for array handling
-    $location_filters = [];
-    if ($county) {
-        $location_filters[] = ['county' => ['$eq' => strtolower($county)]];
-    }
-    if ($city) {
-        $location_filters[] = ['city' => ['$in' => [strtolower($city)]]]; // Changed to $in for array search
-    }
+        // Log start of query
+        error_log('🔍 Starting Pinecone query at ' . '2025-04-27 22:17:39');
+        
+        // Validate inputs
+        if (empty($keyword)) {
+            throw new PineconeSearchException('Search keyword cannot be empty');
+        }
 
-    // Combine filters
-    if (!empty($location_filters)) {
-        $filter = [
-            '$and' => array_merge([$industry_filter], $location_filters)
+        if ($top_k < 1 || $top_k > 100) {
+            error_log('⚠️ Invalid top_k value, defaulting to 10');
+            $top_k = 10;
+        }
+
+        // Clean and normalize inputs
+        $keyword = strtolower(trim($keyword));
+        $county = $county ? strtolower(trim($county)) : null;
+        $city = $city ? strtolower(trim($city)) : null;
+        
+        // Validate keyword length
+        if (strlen($keyword) < 2) {
+            throw new PineconeSearchException('Search keyword must be at least 2 characters long');
+        }
+
+        // Log query parameters
+        error_log('📊 Query parameters: ' . json_encode([
+            'keyword' => $keyword,
+            'county' => $county,
+            'city' => $city,
+            'top_k' => $top_k
+        ]));
+
+        // Create zero vector for metadata-only search
+        $vector = array_fill(0, 1536, 0.0);
+        
+        // Build industry filter with synonyms
+        $industry_filter = [
+            '$or' => [
+                ['industry' => ['$in' => [$keyword]]],
+                ['industry_synonyms' => ['$in' => [$keyword]]]
+            ]
         ];
-    } else {
+
+        // Build location filters
         $filter = $industry_filter;
-    }
+        if ($county || $city) {
+            $location_filters = [];
+            
+            if ($county) {
+                if (strlen($county) < 2) {
+                    throw new PineconeSearchException('County name must be at least 2 characters long');
+                }
+                $location_filters[] = ['county' => ['$eq' => $county]];
+            }
+            
+            if ($city) {
+                if (strlen($city) < 2) {
+                    throw new PineconeSearchException('City name must be at least 2 characters long');
+                }
+                $location_filters[] = ['city' => ['$in' => [$city]]];
+            }
+            
+            $filter = [
+                '$and' => array_merge([$industry_filter], $location_filters)
+            ];
+        }
 
-    error_log('🔍 Pinecone filter payload: ' . json_encode($filter));
+        error_log('🔍 Pinecone filter payload: ' . json_encode($filter));
 
-    // Main query with both vector and metadata
-    $response = wp_remote_post('https://company-search-pb9v2w7.svc.aped-4627-b74a.pinecone.io/query', [
-        'headers' => [
-            'Api-Key' => PINECONE_API_KEY,
-            'Content-Type' => 'application/json'
-        ],
-        'body' => json_encode([
+        // Define the request body
+        $request_body = [
             'vector' => $vector,
             'topK' => $top_k,
             'includeMetadata' => true,
             'filter' => $filter,
             'includeValues' => false,
-        ])
-    ]);
+        ];
 
-    $response_code = wp_remote_retrieve_response_code($response);
-    $response_body = wp_remote_retrieve_body($response);
-    error_log('📊 Pinecone Response Code: ' . $response_code);
-    error_log('📄 Pinecone Response Body: ' . $response_body);
+        // Make the Pinecone API request with retry logic
+        $max_retries = 2;
+        $retry_count = 0;
+        $response = null;
 
-    if (is_wp_error($response)) {
-        error_log('❌ Pinecone metadata query failed: ' . $response->get_error_message());
-        return [];
-    }
+        while ($retry_count <= $max_retries) {
+            $response = wp_remote_post(
+                'https://company-search-pb9v2w7.svc.aped-4627-b74a.pinecone.io/query',
+                [
+                    'headers' => [
+                        'Api-Key' => PINECONE_API_KEY,
+                        'Content-Type' => 'application/json'
+                    ],
+                    'body' => json_encode($request_body),
+                    'timeout' => 15,
+                ]
+            );
 
-    $data = json_decode(wp_remote_retrieve_body($response), true);
-    
-    // Log match scores for debugging
-    if (!empty($data['matches'])) {
-        foreach ($data['matches'] as $match) {
-            error_log(sprintf(
-                '🎯 Match: %s (Score: %f)', 
-                $match['metadata']['company'] ?? 'Unknown',
-                $match['score'] ?? 0
-            ));
+            $response_code = wp_remote_retrieve_response_code($response);
+            
+            // Check for specific error conditions
+            if (is_wp_error($response)) {
+                $error_message = $response->get_error_message();
+                if ($retry_count < $max_retries) {
+                    error_log("⚠️ Retry {$retry_count + 1}/{$max_retries}: {$error_message}");
+                    $retry_count++;
+                    sleep(1); // Wait 1 second before retrying
+                    continue;
+                }
+                throw new PineconeSearchException("Network error: {$error_message}");
+            }
+
+            // Handle various HTTP response codes
+            switch ($response_code) {
+                case 200:
+                    break 2; // Success, exit the retry loop
+                case 401:
+                    throw new PineconeSearchException('Invalid Pinecone API key');
+                case 400:
+                    throw new PineconeSearchException('Invalid query format');
+                case 429:
+                    if ($retry_count < $max_retries) {
+                        error_log("⚠️ Rate limit hit, retry {$retry_count + 1}/{$max_retries}");
+                        $retry_count++;
+                        sleep(2); // Wait 2 seconds before retrying
+                        continue;
+                    }
+                    throw new PineconeSearchException('Rate limit exceeded');
+                case 500:
+                case 502:
+                case 503:
+                case 504:
+                    if ($retry_count < $max_retries) {
+                        error_log("⚠️ Server error {$response_code}, retry {$retry_count + 1}/{$max_retries}");
+                        $retry_count++;
+                        sleep(1);
+                        continue;
+                    }
+                    throw new PineconeSearchException("Pinecone server error: {$response_code}");
+                default:
+                    throw new PineconeSearchException("Unexpected response code: {$response_code}");
+            }
         }
-    }
 
-    return $data['matches'] ?? [];
+        $response_body = wp_remote_retrieve_body($response);
+        $data = json_decode($response_body, true);
+
+        // Validate response structure
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new PineconeSearchException('Invalid JSON response from Pinecone');
+        }
+
+        if (!isset($data['matches'])) {
+            throw new PineconeSearchException('Unexpected response format from Pinecone');
+        }
+
+        // Log matches for debugging
+        if (!empty($data['matches'])) {
+            foreach ($data['matches'] as $match) {
+                $company = $match['metadata']['company'] ?? 'Unknown';
+                $score = $match['score'] ?? 0;
+                error_log(sprintf('🎯 Match: %s (Score: %f)', $company, $score));
+            }
+        } else {
+            error_log('ℹ️ No matches found for query');
+        }
+
+        return $data['matches'];
+
+    } catch (PineconeSearchException $e) {
+        error_log('❌ Pinecone search error: ' . $e->getMessage());
+        return [
+            'error' => true,
+            'message' => $e->getMessage(),
+            'matches' => []
+        ];
+    } catch (Exception $e) {
+        error_log('❌ Unexpected error: ' . $e->getMessage());
+        return [
+            'error' => true,
+            'message' => 'An unexpected error occurred',
+            'matches' => []
+        ];
+    }
 }
+
+// Helper function to check if the response indicates an error
+function is_pinecone_error($response) {
+    return isset($response['error']) && $response['error'] === true;
+}
+
+// Usage example:
+/*
+$results = query_pinecone_by_metadata('restaurant', 'example county', 'example city');
+if (is_pinecone_error($results)) {
+    // Handle error
+    $error_message = $results['message'];
+} else {
+    // Process results
+    foreach ($results as $match) {
+        // Process each match
+    }
+}
+*/
