@@ -2,40 +2,52 @@
 // chatbot-fallback.php
 
 function generate_fallback_message($query, $location = []) {
-  $county = $location['county'] ?? 'your area';
-  $cache_key = 'fallback_' . md5($query . $county);
+    // Clean and format the search terms
+    $query = trim(strip_tags($query));
+    $county = isset($location['county']) ? trim(strip_tags($location['county'])) : '';
+    $city = isset($location['city']) ? trim(strip_tags($location['city'])) : '';
+    
+    // Determine location text for the message
+    $location_text = '';
+    if ($city) {
+        $location_text = $city;
+    } elseif ($county) {
+        $location_text = "$county county";
+    } else {
+        $location_text = "your area";
+    }
 
-  // 🔁 Return cached response if exists
-  $cached = get_transient($cache_key);
-  if ($cached) {
-    error_log("♻️ Using cached fallback for {$query} in {$county}");
-    return $cached;
-  }
+    // Build the base message
+    $message = sprintf(
+        "I couldn't find any matches for '%s' in %s.",
+        esc_html($query),
+        esc_html($location_text)
+    );
 
-  $response = wp_remote_post('https://api.openai.com/v1/chat/completions', [
-    'headers' => [
-      'Authorization' => 'Bearer ' . OPENAI_API_KEY,
-      'Content-Type'  => 'application/json',
-    ],
-    'body' => json_encode([
-      'model' => 'gpt-4',
-      'messages' => [
-        ['role' => 'system', 'content' => 'You are a helpful assistant in a small-town business directory.'],
-        ['role' => 'user', 'content' => "We don’t have any matches for this: {$query} in {$county}. Write a kind and helpful fallback response that encourages the user to try a nearby county or different keyword."]
-      ]
-    ])
-  ]);
+    // Add suggestion bullets
+    $suggestions = [
+        "Try a different keyword or business type",
+        "Check the spelling of your search terms",
+        "Search in a nearby city or county",
+        "Use a broader search term (e.g., 'restaurant' instead of 'pizzeria')"
+    ];
 
-  if (is_wp_error($response)) {
-    error_log('❌ GPT fallback failed: ' . $response->get_error_message());
-    return "Sorry, we couldn't find anything in {$county}. Please try another area or different keyword.";
-  }
+    $message .= "\n\nHere are some suggestions:";
+    foreach ($suggestions as $suggestion) {
+        $message .= "\n• " . $suggestion;
+    }
 
-  $data = json_decode(wp_remote_retrieve_body($response), true);
-  $message = trim($data['choices'][0]['message']['content'] ?? "Sorry, we couldn't find anything in {$county}.");
+    // Add location prompt if no location was specified
+    if (empty($county) && empty($city)) {
+        $message .= "\n\nTo help narrow down your search, please specify which city or county you're looking in. Choose from the options below:";
+    }
 
-  // ✅ Cache for 2 hours
-  set_transient($cache_key, $message, 2 * HOUR_IN_SECONDS);
+    error_log(sprintf(
+        '📝 Generated fallback message for query: "%s" in location: "%s" at %s',
+        $query,
+        $location_text,
+        date('Y-m-d H:i:s')
+    ));
 
-  return $message;
+    return $message;
 }
