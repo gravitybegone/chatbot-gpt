@@ -269,6 +269,21 @@ updateDebugBanner() {
         this.debugBanner.style.display = 'block';
     }
 }
+
+// 🔥 NEW method for dynamic button responses
+createButtonResponse(message, options) {
+    return `
+        ${message}
+        <div class="chatbot-suggestions">
+            <div class="chatbot-suggestion-buttons">
+                ${options.map(option => 
+                    `<button class="suggestion-btn">${option}</button>`
+                ).join('')}
+            </div>
+        </div>
+    `;
+}
+} // <-- Correct class closing brace!
 }
 
 // Make available globally
