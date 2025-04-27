@@ -253,12 +253,22 @@ class ChatbotMessageHandler {
         }
     }
 
-    updateDebugBanner() {
-        if (this.isDebugMode && this.debugBanner && this.session) {
-            this.debugBanner.textContent = `Current State: ${this.session.state} | Messages: ${this.session.messages.length}`;
-            this.debugBanner.style.display = 'block';
-        }
+updateDebugBanner() {
+    if (this.isDebugMode && this.debugBanner && this.session) {
+        const industry = this.session.selectedIndustry || '(awaiting)';
+        const county = (() => {
+            const selected = this.session.selectedCounty;
+            if (!selected) return '(awaiting)';
+            const countyObj = ChatbotConfig.counties.find(c => c.id === selected);
+            return countyObj ? countyObj.name : selected;
+        })();
+        const city = this.session.selectedCity || '(awaiting)';
+        const messageCount = this.session.messages.length || 0;
+
+        this.debugBanner.textContent = `Current: Industry=${industry} | County=${county} | City=${city} | Messages=${messageCount}`;
+        this.debugBanner.style.display = 'block';
     }
+}
 }
 
 // Make available globally
