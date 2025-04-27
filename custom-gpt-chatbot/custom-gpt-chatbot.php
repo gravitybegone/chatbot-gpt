@@ -22,12 +22,6 @@ class CustomGPTChatbot {
 
     public function enqueue_assets() {
         // Enqueue your scripts and styles here
-        wp_enqueue_style(
-            'custom-gpt-chatbot',
-            $this->plugin_url . 'css/custom-gpt-chatbot.css',
-            array(),
-            '2.0.0'
-        );
 
         // Config script
         wp_enqueue_script(
@@ -52,15 +46,6 @@ class CustomGPTChatbot {
             'chatbot-index',
             $this->plugin_url . 'js/index.js',
             array('jquery', 'chatbot-config', 'chatbot-state'),
-            '2.0.0',
-            true
-        );
-
-        // UI initialization
-        wp_enqueue_script(
-            'chatbot-ui-init',
-            $this->plugin_url . 'js/chatbot-ui-init.js',
-            array('chatbot-index'),
             '2.0.0',
             true
         );
