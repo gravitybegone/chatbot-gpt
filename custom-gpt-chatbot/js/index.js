@@ -95,11 +95,13 @@ class ChatbotMessageHandler {
         }
     }
 
-    handleUserInput(inputText = null) {
-        const text = inputText || this.input.value.trim();
+    handleUserInput(textInput) {
+        const text = textInput || this.input.value.trim();
         if (text) {
             this.displayUserMessage(text);
-            if (!inputText) this.input.value = '';
+            if (!textInput) {
+                this.input.value = '';  // Clear input only if typed manually
+            }
             this.processUserInput(text);
         }
     }
@@ -233,28 +235,12 @@ class ChatbotMessageHandler {
             buttons.forEach(button => {
                 button.addEventListener('click', () => {
                     const text = button.textContent;
-                    console.log('🔘 Suggestion button clicked:', text);
                     this.handleUserInput(text);
                 });
             });
         } catch (error) {
             console.error('❌ Error adding suggestion buttons:', error);
         }
-    }
-
-    handleSuggestionClick(text) {
-        this.displayUserMessage(text);
-        this.session.selectedIndustry = text;
-
-        const countyOptions = ChatbotConfig.counties.map(county => county.name);
-        const response = this.createButtonResponse(
-            `Great! You're looking for ${text}.`, 
-            countyOptions
-        );
-
-        setTimeout(() => {
-            this.displayBotMessage(response);
-        }, 500);
     }
 
     endSession() {
