@@ -1,4 +1,15 @@
 window.ChatbotConfig = {
+
+    industries: [
+        'SEO Services',
+        'Carpenter',
+        'Landscaping',
+        'Web Development',
+        'Plumbing',
+        'Electrician',
+        'HVAC',
+        'Real Estate'
+    ],
     // Counties are fixed and accurate for North Florida
     counties: [
         { id: 'clay', name: 'Clay County' },
