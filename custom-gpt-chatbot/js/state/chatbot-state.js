@@ -9,30 +9,28 @@ window.ChatbotState = {
 };
 
 // Define ChatSession class globally
-window.ChatSession = class ChatSession {
+class ChatSession {
     constructor() {
-        this.state = ChatbotState.GREETING;
+        this.state = 'initial';
         this.selectedIndustry = null;
-        this.selectedLocationType = null;
         this.selectedLocation = null;
         this.messages = [];
-        this.lastQuery = null;
     }
 
     addMessage(message, isUser) {
         this.messages.push({
-            content: message,
+            text: message,
             isUser: isUser,
             timestamp: new Date()
         });
     }
 
-    reset() {
-        this.state = ChatbotState.GREETING;
-        this.selectedIndustry = null;
-        this.selectedLocationType = null;
-        this.selectedLocation = null;
+    endSession() {
+        this.state = 'ended';
         this.messages = [];
-        this.lastQuery = null;
+        this.selectedIndustry = null;
+        this.selectedLocation = null;
     }
-};
+}
+
+window.ChatSession = ChatSession;
