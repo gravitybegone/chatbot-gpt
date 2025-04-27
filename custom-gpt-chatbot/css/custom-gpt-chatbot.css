@@ -624,3 +624,54 @@
     transform: translateY(0);
     box-shadow: none;
 }
+
+/* Suggestions Container */
+.chatbot-suggestions {
+    margin: 10px 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.suggestion-label {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-bottom: 8px;
+}
+
+.chatbot-suggestion-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.suggestion-btn {
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 0.9em;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.suggestion-btn:hover {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+/* Make sure buttons don't get too wide */
+.chatbot-suggestion-buttons button {
+    max-width: calc(50% - 4px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ensure suggestions don't overflow chat body */
+.gpt-chatbot-body .chatbot-suggestions {
+    width: calc(100% - 20px);
+    box-sizing: border-box;
+}
