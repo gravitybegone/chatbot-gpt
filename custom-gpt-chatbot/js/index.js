@@ -1,7 +1,7 @@
 class ChatbotMessageHandler {
     constructor() {
         console.group('🤖 Initializing ChatbotMessageHandler');
-        
+
         this.isDebugMode = window.customGptChatbotAjax?.debug || false;
         console.log('Debug mode:', this.isDebugMode);
 
@@ -95,11 +95,11 @@ class ChatbotMessageHandler {
         }
     }
 
-    handleUserInput() {
-        const text = this.input.value.trim();
+    handleUserInput(inputText = null) {
+        const text = inputText || this.input.value.trim();
         if (text) {
             this.displayUserMessage(text);
-            this.input.value = '';
+            if (!inputText) this.input.value = '';
             this.processUserInput(text);
         }
     }
@@ -109,8 +109,11 @@ class ChatbotMessageHandler {
 
         if (!this.session.selectedIndustry) {
             this.session.selectedIndustry = text;
-            const countyOptions = ChatbotConfig.counties.map(county => county.name).join(', ');
-            response = `Great! You're looking for ${text}. Which county should I look in? (${countyOptions})`;
+            const countyOptions = ChatbotConfig.counties.map(county => county.name);
+            response = this.createButtonResponse(
+                `Great! You're looking for ${text}.`, 
+                countyOptions
+            );
         } 
         else if (!this.session.selectedCounty) {
             const selectedCounty = ChatbotConfig.counties.find(county => 
@@ -121,9 +124,16 @@ class ChatbotMessageHandler {
             if (selectedCounty) {
                 this.session.selectedCounty = selectedCounty.id;
                 const cities = ChatbotConfig.cities[selectedCounty.id] || [];
-                response = `Which city in ${selectedCounty.name} are you interested in? (${cities.join(', ')})`;
+                response = this.createButtonResponse(
+                    `Which city in ${selectedCounty.name} are you interested in?`,
+                    cities
+                );
             } else {
-                response = `I couldn't find that county. Please choose from: ${ChatbotConfig.counties.map(c => c.name).join(', ')}`;
+                const countyOptions = ChatbotConfig.counties.map(county => county.name);
+                response = this.createButtonResponse(
+                    `I couldn't find that county. Please choose from:`,
+                    countyOptions
+                );
             }
         } 
         else if (!this.session.selectedCity) {
@@ -133,12 +143,24 @@ class ChatbotMessageHandler {
                 response = `Great! I'll search for ${this.session.selectedIndustry} in ${text}.`;
                 // Here you would trigger the Pinecone search
             } else {
-                response = `I couldn't find that city. Please choose from: ${availableCities.join(', ')}`;
+                response = this.createButtonResponse(
+                    `I couldn't find that city. Please choose from:`,
+                    availableCities
+                );
             }
         }
 
         setTimeout(() => {
             this.displayBotMessage(response);
+
+            // Attach click handlers to newly generated suggestion buttons
+            const newButtons = this.chatBody.querySelectorAll('.chatbot-msg.bot:last-child .suggestion-btn');
+            newButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const buttonText = button.textContent;
+                    this.handleUserInput(buttonText);
+                });
+            });
         }, 500);
     }
 
@@ -212,7 +234,7 @@ class ChatbotMessageHandler {
                 button.addEventListener('click', () => {
                     const text = button.textContent;
                     console.log('🔘 Suggestion button clicked:', text);
-                    this.handleSuggestionClick(text);
+                    this.handleUserInput(text);
                 });
             });
         } catch (error) {
@@ -223,9 +245,12 @@ class ChatbotMessageHandler {
     handleSuggestionClick(text) {
         this.displayUserMessage(text);
         this.session.selectedIndustry = text;
-        
-        const countyOptions = ChatbotConfig.counties.map(county => county.name).join(', ');
-        const response = `Great! You're looking for ${text}. Which county should I look in? (${countyOptions})`;
+
+        const countyOptions = ChatbotConfig.counties.map(county => county.name);
+        const response = this.createButtonResponse(
+            `Great! You're looking for ${text}.`, 
+            countyOptions
+        );
 
         setTimeout(() => {
             this.displayBotMessage(response);
@@ -253,37 +278,35 @@ class ChatbotMessageHandler {
         }
     }
 
-updateDebugBanner() {
-    if (this.isDebugMode && this.debugBanner && this.session) {
-        const industry = this.session.selectedIndustry || '(awaiting)';
-        const county = (() => {
-            const selected = this.session.selectedCounty;
-            if (!selected) return '(awaiting)';
-            const countyObj = ChatbotConfig.counties.find(c => c.id === selected);
-            return countyObj ? countyObj.name : selected;
-        })();
-        const city = this.session.selectedCity || '(awaiting)';
-        const messageCount = this.session.messages.length || 0;
+    updateDebugBanner() {
+        if (this.isDebugMode && this.debugBanner && this.session) {
+            const industry = this.session.selectedIndustry || '(awaiting)';
+            const county = (() => {
+                const selected = this.session.selectedCounty;
+                if (!selected) return '(awaiting)';
+                const countyObj = ChatbotConfig.counties.find(c => c.id === selected);
+                return countyObj ? countyObj.name : selected;
+            })();
+            const city = this.session.selectedCity || '(awaiting)';
+            const messageCount = this.session.messages.length || 0;
 
-        this.debugBanner.textContent = `Current: Industry=${industry} | County=${county} | City=${city} | Messages=${messageCount}`;
-        this.debugBanner.style.display = 'block';
+            this.debugBanner.textContent = `Current: Industry=${industry} | County=${county} | City=${city} | Messages=${messageCount}`;
+            this.debugBanner.style.display = 'block';
+        }
     }
-}
 
-// 🔥 NEW method for dynamic button responses
-createButtonResponse(message, options) {
-    return `
-        ${message}
-        <div class="chatbot-suggestions">
-            <div class="chatbot-suggestion-buttons">
-                ${options.map(option => 
-                    `<button class="suggestion-btn">${option}</button>`
-                ).join('')}
+    createButtonResponse(message, options) {
+        return `
+            ${message}
+            <div class="chatbot-suggestions">
+                <div class="chatbot-suggestion-buttons">
+                    ${options.map(option => 
+                        `<button class="suggestion-btn">${option}</button>`
+                    ).join('')}
+                </div>
             </div>
-        </div>
-    `;
-}
-} // <-- Correct class closing brace!
+        `;
+    }
 }
 
 // Make available globally
