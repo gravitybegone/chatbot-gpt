@@ -178,7 +178,65 @@ class ChatbotMessageHandler {
         }
     }
 
-    // ... [existing addSuggestionButtons and handleSuggestionClick methods] ...
+    addSuggestionButtons() {
+        const suggestionsHtml = `
+            <div class="chatbot-suggestions">
+                <div class="suggestion-label">Quick Suggestions:</div>
+                <div class="chatbot-suggestion-buttons">
+                    <button class="suggestion-btn">Find a Restaurant</button>
+                    <button class="suggestion-btn">Local Services</button>
+                    <button class="suggestion-btn">Business Directory</button>
+                    <button class="suggestion-btn">Community Events</button>
+                </div>
+            </div>
+        `;
+
+        const suggestionsDiv = document.createElement('div');
+        suggestionsDiv.innerHTML = suggestionsHtml;
+        this.chatBody.appendChild(suggestionsDiv.firstElementChild);
+
+        // Add click handlers to suggestion buttons
+        const buttons = this.chatBody.querySelectorAll('.suggestion-btn');
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                const text = button.textContent;
+                this.handleSuggestionClick(text);
+            });
+        });
+    }
+
+    handleSuggestionClick(text) {
+        // Display user's selection
+        this.displayUserMessage(text);
+
+        // Process different suggestions
+        let response;
+        switch(text.toLowerCase()) {
+            case 'find a restaurant':
+                this.session.state = ChatbotState.INDUSTRY_SELECTION;
+                response = "I'd be happy to help you find a restaurant! What type of cuisine are you interested in?";
+                break;
+            case 'local services':
+                this.session.state = ChatbotState.INDUSTRY_SELECTION;
+                response = "What kind of local service are you looking for? (e.g., plumber, electrician, mechanic)";
+                break;
+            case 'business directory':
+                this.session.state = ChatbotState.INDUSTRY_SELECTION;
+                response = "I can help you browse our local business directory. What category interests you?";
+                break;
+            case 'community events':
+                this.session.state = ChatbotState.LOCATION_TYPE_SELECTION;
+                response = "Let me check what's happening in the community. Would you like to see events by city or county?";
+                break;
+            default:
+                response = "I'll help you find information about " + text + ". Could you provide more details?";
+        }
+
+        // Add slight delay before bot response
+        setTimeout(() => {
+            this.displayBotMessage(response);
+        }, 500);
+    }
 
     endSession() {
         if (this.session) {
