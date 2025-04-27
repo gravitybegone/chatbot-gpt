@@ -3,7 +3,7 @@
 
 function query_pinecone_by_metadata($keyword, $county = null, $city = null, $top_k = 10) {
   // Add to beginning of query_pinecone_by_metadata function
-error_log('🔍 Starting Pinecone query at ' . '2025-04-26 17:49:29');
+error_log('🔍 Starting Pinecone query at ' . date('Y-m-d H:i:s'));
 error_log('📊 Query parameters: ' . json_encode([
     'keyword' => $keyword,
     'county' => $county,
