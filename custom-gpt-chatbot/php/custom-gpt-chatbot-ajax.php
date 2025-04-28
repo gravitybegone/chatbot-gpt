@@ -1,28 +1,50 @@
 <?php
+
 // custom-gpt-chatbot-ajax.php
+
 
 // Include required files
 require_once dirname(__FILE__) . '/chatbot-location.php';
 require_once dirname(__FILE__) . '/chatbot-pinecone.php';
+require_once dirname(__FILE__) . '/chatbot-format.php';
 
 function custom_gpt_chatbot_handle_request() {
-    $start_time = microtime(true);
+    chatbot_log('👉 Handler Function Called', [
+        'post_data' => $_POST,
+        'request_method' => $_SERVER['REQUEST_METHOD']
+    ]);
 
-    error_log('📥 Received chatbot request');
+    // Verify nonce first
+    if (!check_ajax_referer('custom_gpt_chatbot_nonce', 'nonce', false)) {
+        chatbot_log('❌ Invalid nonce in AJAX request');
+        wp_send_json_error(['reply' => 'Security check failed']);
+        return;
+    }
 
     try {
-        // Get and sanitize the message from the AJAX request
+        // Get and sanitize the message
         $message = sanitize_text_field($_POST['message'] ?? '');
-        
+
         if (empty($message)) {
+            chatbot_log('❌ Empty message received');
             throw new Exception('Message cannot be empty');
         }
 
         // Extract location first
         $location = extract_location_from_message($message);
+        $industry = extract_industry_from_message($message, $location);
 
-        // Use the keyword from location extraction
-        $industry = $location['keyword'];
+        chatbot_log('📍 Location and industry extracted', [
+            'raw_message' => $message,
+            'industry' => $industry,
+            'county' => $location['county'] ?? 'none',
+            'city' => $location['city'] ?? 'none'
+        ]);
+
+        if (empty($industry)) {
+            chatbot_log('❌ No industry found in message');
+            throw new Exception('Could not determine what you are looking for. Please try again with a business type or industry.');
+        }
 
         // Query Pinecone with error handling
         $results = query_pinecone_by_metadata(
@@ -33,13 +55,12 @@ function custom_gpt_chatbot_handle_request() {
 
         // Check for Pinecone-specific errors
         if (is_pinecone_error($results)) {
-            error_log(sprintf(
-                '📌 Pinecone error: %s | Query: %s | Location: %s, %s',
-                $results['message'],
-                $industry,
-                $location['county'] ?? 'no-county',
-                $location['city'] ?? 'no-city'
-            ));
+            chatbot_log('📌 Pinecone error occurred', [
+                'error' => $results['message'],
+                'query' => $industry,
+                'county' => $location['county'] ?? 'no-county',
+                'city' => $location['city'] ?? 'no-city'
+            ]);
 
             wp_send_json_error([
                 'reply' => "I'm having trouble searching right now. Please try:
@@ -59,13 +80,12 @@ function custom_gpt_chatbot_handle_request() {
 
         // Process successful results
         if (!empty($results)) {
-            error_log(sprintf(
-                '✅ Search completed - Found: %d matches | Query: %s | Location: %s, %s',
-                count($results),
-                $industry,
-                $location['county'] ?? 'no-county',
-                $location['city'] ?? 'no-city'
-            ));
+            chatbot_log('✅ Search completed', [
+                'matches_found' => count($results),
+                'query' => $industry,
+                'county' => $location['county'] ?? 'no-county',
+                'city' => $location['city'] ?? 'no-city'
+            ]);
 
             $response = format_pinecone_matches($results);
 
@@ -80,11 +100,11 @@ function custom_gpt_chatbot_handle_request() {
                 ]
             ]);
         } else {
-            // No matches found
-            $location_text = $location['city'] 
-                ? $location['city'] 
-                : ($location['county'] 
-                    ? $location['county'] . ' county' 
+            // No matches found, fallback
+            $location_text = $location['city']
+                ? $location['city']
+                : ($location['county']
+                    ? $location['county'] . ' county'
                     : 'your area');
 
             $fallback = sprintf(
@@ -100,10 +120,8 @@ function custom_gpt_chatbot_handle_request() {
                 $fallback .= "\n\nWhich city or county are you searching in? Choose below:";
             }
 
-            $response = $fallback . '<!--RETRY-OPTIONS-->';
-
             wp_send_json_success([
-                'reply' => $response,
+                'reply' => $fallback . '<!--RETRY-OPTIONS-->',
                 'rawHtml' => false,
                 'metadata' => [
                     'matchCount' => 0,
@@ -115,11 +133,10 @@ function custom_gpt_chatbot_handle_request() {
         }
 
     } catch (Exception $e) {
-        error_log(sprintf(
-            '❌ System error: %s | Stack trace: %s',
-            $e->getMessage(),
-            $e->getTraceAsString()
-        ));
+        chatbot_log('❌ System error', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
 
         wp_send_json_error([
             'reply' => "I'm sorry, but I encountered an error. Please try:
@@ -134,10 +151,9 @@ function custom_gpt_chatbot_handle_request() {
         ]);
     } finally {
         $execution_time = microtime(true) - $start_time;
-        error_log(sprintf(
-            '⏱️ Request completed in %.4f seconds',
-            $execution_time
-        ));
+        chatbot_log('⏱️ Request completed', [
+            'execution_time' => round($execution_time, 4)
+        ]);
     }
 }
 
