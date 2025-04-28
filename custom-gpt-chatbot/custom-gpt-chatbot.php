@@ -8,6 +8,7 @@ Author: Your Name
 
 if (!defined('ABSPATH')) exit;
 
+
 class CustomGPTChatbot {
     private $plugin_path;
     private $plugin_url;
@@ -114,6 +115,9 @@ class CustomGPTChatbot {
 global $custom_gpt_chatbot;
 $custom_gpt_chatbot = new CustomGPTChatbot();
 
+// Load AJAX handler - Add this line
+require_once plugin_dir_path(__FILE__) . 'php/custom-gpt-chatbot-ajax.php';
+
 // Add global logging function
 if (!function_exists('chatbot_log')) {
     function chatbot_log($message, $context = []) {
@@ -123,3 +127,4 @@ if (!function_exists('chatbot_log')) {
         }
     }
 }
+?>
