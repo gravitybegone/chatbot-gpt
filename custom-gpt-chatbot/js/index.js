@@ -100,7 +100,7 @@ class ChatbotMessageHandler {
         if (text) {
             this.displayUserMessage(text);
             if (!textInput) {
-                this.input.value = '';  // Clear input only if typed manually
+                this.input.value = '';
             }
             this.processUserInput(text);
         }
@@ -113,12 +113,12 @@ class ChatbotMessageHandler {
             this.session.selectedIndustry = text;
             const countyOptions = ChatbotConfig.counties.map(county => county.name);
             response = this.createButtonResponse(
-                `Great! You're looking for ${text}.`, 
+                `Great! You're looking for ${text}.`,
                 countyOptions
             );
-        } 
+        }
         else if (!this.session.selectedCounty) {
-            const selectedCounty = ChatbotConfig.counties.find(county => 
+            const selectedCounty = ChatbotConfig.counties.find(county =>
                 county.name.toLowerCase() === text.toLowerCase() ||
                 county.id.toLowerCase() === text.toLowerCase()
             );
@@ -137,13 +137,14 @@ class ChatbotMessageHandler {
                     countyOptions
                 );
             }
-        } 
+        }
         else if (!this.session.selectedCity) {
             const availableCities = ChatbotConfig.cities[this.session.selectedCounty] || [];
             if (availableCities.map(city => city.toLowerCase()).includes(text.toLowerCase())) {
                 this.session.selectedCity = text;
                 response = `Great! I'll search for ${this.session.selectedIndustry} in ${text}.`;
-                // Here you would trigger the Pinecone search
+                // ✅ Send AJAX request when city is selected
+                this.sendAjaxRequest(text);
             } else {
                 response = this.createButtonResponse(
                     `I couldn't find that city. Please choose from:`,
@@ -155,7 +156,6 @@ class ChatbotMessageHandler {
         setTimeout(() => {
             this.displayBotMessage(response);
 
-            // Attach click handlers to newly generated suggestion buttons
             const newButtons = this.chatBody.querySelectorAll('.chatbot-msg.bot:last-child .suggestion-btn');
             newButtons.forEach(button => {
                 button.addEventListener('click', () => {
@@ -164,6 +164,58 @@ class ChatbotMessageHandler {
                 });
             });
         }, 500);
+    }
+
+    sendAjaxRequest(message) {
+        console.group('🌐 AJAX Request');
+        console.log('Config:', {
+            ajax_url: customGptChatbotAjax?.ajax_url,
+            nonce: customGptChatbotAjax?.nonce,
+            debug: customGptChatbotAjax?.debug
+        });
+        console.log('Message:', message);
+
+        if (!customGptChatbotAjax?.ajax_url) {
+            console.error('❌ AJAX URL not found!');
+            console.groupEnd();
+            return;
+        }
+
+        jQuery.ajax({
+            url: customGptChatbotAjax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'custom_gpt_chatbot_message',
+                message: message,
+                nonce: customGptChatbotAjax.nonce
+            },
+            beforeSend: function(xhr, settings) {
+                console.log('📤 Sending request:', {
+                    url: settings.url,
+                    data: settings.data
+                });
+            },
+            success: (response) => {
+                console.log('📥 Response received:', response);
+                if (response.success) {
+                    this.displayBotMessage(response.data.reply);
+                } else {
+                    console.error('❌ Server returned error:', response);
+                    this.displayBotMessage(response.data.reply || 'Sorry, something went wrong.');
+                }
+            },
+            error: (xhr, status, error) => {
+                console.error('❌ AJAX Error:', {
+                    error: error,
+                    status: status,
+                    response: xhr.responseText
+                });
+                this.displayBotMessage('Sorry, I encountered an error while processing your request.');
+            },
+            complete: () => {
+                console.groupEnd();
+            }
+        });
     }
 
     displayUserMessage(message) {
@@ -206,7 +258,7 @@ class ChatbotMessageHandler {
             <div class="chatbot-suggestions">
                 <div class="suggestion-label">Quick Suggestions:</div>
                 <div class="chatbot-suggestion-buttons">
-                    ${ChatbotConfig.industries.map(industry => 
+                    ${ChatbotConfig.industries.map(industry =>
                         `<button class="suggestion-btn">${industry}</button>`
                     ).join('')}
                 </div>
@@ -286,7 +338,7 @@ class ChatbotMessageHandler {
             ${message}
             <div class="chatbot-suggestions">
                 <div class="chatbot-suggestion-buttons">
-                    ${options.map(option => 
+                    ${options.map(option =>
                         `<button class="suggestion-btn">${option}</button>`
                     ).join('')}
                 </div>
@@ -298,7 +350,7 @@ class ChatbotMessageHandler {
 // Make available globally
 window.ChatbotMessageHandler = ChatbotMessageHandler;
 
-// 🔥 Consolidated Initialization
+// Consolidated Initialization
 document.addEventListener('DOMContentLoaded', () => {
     console.group('🔄 Initializing chatbot UI');
     console.log('DOM loaded, starting initialization...');
