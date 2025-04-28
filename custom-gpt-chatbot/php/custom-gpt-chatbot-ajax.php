@@ -7,15 +7,8 @@ require_once dirname(__FILE__) . '/chatbot-pinecone.php';
 
 function custom_gpt_chatbot_handle_request() {
     $start_time = microtime(true);
-    $user = wp_get_current_user();
-    $user_login = $user->exists() ? $user->user_login : 'anonymous';
-    
-    error_log(sprintf(
-        '[Chatbot][%s][User:%s] 📥 Received request: %s',
-        '2025-04-27 22:30:08',
-        $user_login,
-        $_POST['message'] ?? 'empty'
-    ));
+
+    error_log('📥 Received chatbot request');
 
     try {
         // Get and sanitize the message from the AJAX request
@@ -41,9 +34,7 @@ function custom_gpt_chatbot_handle_request() {
         // Check for Pinecone-specific errors
         if (is_pinecone_error($results)) {
             error_log(sprintf(
-                '[Chatbot][%s][User:%s] 📌 Pinecone error: %s | Query: %s | Location: %s, %s',
-                '2025-04-27 22:30:08',
-                $user_login,
+                '📌 Pinecone error: %s | Query: %s | Location: %s, %s',
                 $results['message'],
                 $industry,
                 $location['county'] ?? 'no-county',
@@ -69,16 +60,13 @@ function custom_gpt_chatbot_handle_request() {
         // Process successful results
         if (!empty($results)) {
             error_log(sprintf(
-                '[Chatbot][%s][User:%s] ✅ Search completed - Found: %d matches | Query: %s | Location: %s, %s',
-                '2025-04-27 22:30:08',
-                $user_login,
+                '✅ Search completed - Found: %d matches | Query: %s | Location: %s, %s',
                 count($results),
                 $industry,
                 $location['county'] ?? 'no-county',
                 $location['city'] ?? 'no-city'
             ));
 
-            // Format results as cards
             $response = format_pinecone_matches($results);
 
             wp_send_json_success([
@@ -92,7 +80,7 @@ function custom_gpt_chatbot_handle_request() {
                 ]
             ]);
         } else {
-            // No matches found, generate fallback message
+            // No matches found
             $location_text = $location['city'] 
                 ? $location['city'] 
                 : ($location['county'] 
@@ -128,9 +116,7 @@ function custom_gpt_chatbot_handle_request() {
 
     } catch (Exception $e) {
         error_log(sprintf(
-            '[Chatbot][%s][User:%s] ❌ System error: %s | Stack trace: %s',
-            '2025-04-27 22:30:08',
-            $user_login,
+            '❌ System error: %s | Stack trace: %s',
             $e->getMessage(),
             $e->getTraceAsString()
         ));
@@ -143,16 +129,13 @@ function custom_gpt_chatbot_handle_request() {
             'error' => true,
             'debug' => WP_DEBUG ? $e->getMessage() : null,
             'metadata' => [
-                'errorType' => 'system',
-                'timestamp' => '2025-04-27 22:30:08'
+                'errorType' => 'system'
             ]
         ]);
     } finally {
         $execution_time = microtime(true) - $start_time;
         error_log(sprintf(
-            '[Chatbot][%s][User:%s] ⏱️ Request completed in %.4f seconds',
-            '2025-04-27 22:30:08',
-            $user_login,
+            '⏱️ Request completed in %.4f seconds',
             $execution_time
         ));
     }
