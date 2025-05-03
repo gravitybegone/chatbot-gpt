@@ -1,0 +1,36 @@
+.chatbot-analytics .stats-overview {
+    display: flex;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.chatbot-analytics .stat-box {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 20px;
+    border-radius: 4px;
+    min-width: 200px;
+}
+
+.chatbot-analytics .stat-box h3 {
+    margin: 0 0 10px 0;
+    color: #23282d;
+}
+
+.chatbot-analytics .stat-box p {
+    font-size: 24px;
+    margin: 0;
+    color: #2271b1;
+}
+
+.chatbot-analytics .stats-details {
+    margin-top: 30px;
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+}
+
+.chatbot-analytics .recent-interactions {
+    margin-top: 30px;
+}
